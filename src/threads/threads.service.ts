@@ -1,63 +1,64 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { type Thread, ThreadsRepository } from './threads.repository';
-import {
-  CommentsRepository,
-  type Comment,
-} from 'src/comments/comments.repository';
+import { InjectRepository } from '@nestjs/typeorm';
+import type { Repository } from 'typeorm';
+import { Comment } from 'src/comments/comments.entity';
+import type { CreateCommentDto } from 'src/comments/comments.dto';
+import type { CreateThreadDto } from './threads.dto';
+import { Thread } from './threads.entity';
 
 export type CreateThreadPayload = Omit<Thread, 'id' | 'createdAt'>;
 
 @Injectable()
 export class ThreadsService {
   constructor(
-    private readonly threadsRepository: ThreadsRepository,
-    private readonly commentsRepository: CommentsRepository,
+    @InjectRepository(Thread)
+    private readonly threads: Repository<Thread>,
+    @InjectRepository(Comment)
+    private readonly comments: Repository<Comment>,
   ) {}
 
   getAllThreads() {
-    return this.threadsRepository.getAll();
+    return this.threads.find({ order: { createdAt: 'DESC' } });
   }
 
-  createThread(body: CreateThreadPayload) {
-    return this.threadsRepository.create(body);
+  getThreadById(id: string) {
+    return this.threads.findOneBy({ id });
   }
 
-  getThreadById(id: number) {
-    const thread = this.threadsRepository.getAllById(id);
+  async createThread(dto: CreateThreadDto): Promise<Thread> {
+    const thread = this.threads.create(dto);
+    return this.threads.save(thread);
+  }
 
+  async addCommentToThread(id: string, dto: CreateCommentDto): Promise<Thread> {
+    const thread = await this.threads.findOneBy({ id });
     if (!thread) {
       throw new NotFoundException(`Thread not found.`);
     }
 
+    const comment = this.comments.create({
+      body: dto.body,
+      author: dto.author,
+      thread,
+    });
+    await this.comments.save(comment);
+
+    return this.threads.findOneOrFail({
+      where: { id },
+      relations: { comments: true },
+    });
+  }
+
+  async deleteThread(id: string): Promise<Thread> {
+    const thread = await this.threads.findOne({
+      where: { id },
+      relations: { comments: true },
+    });
+    if (!thread) {
+      throw new NotFoundException(`Thread not found.`);
+    }
+
+    await this.threads.delete(id);
     return thread;
-  }
-
-  addComment(id: number, comment: Omit<Comment, 'id' | 'createdAt'>) {
-    const thread = this.threadsRepository.getAllById(id);
-
-    if (!thread) {
-      throw new NotFoundException(`Thread not found.`);
-    }
-
-    const newComment = this.commentsRepository.create(comment);
-    if (thread.comments === undefined) {
-      thread.comments = [];
-    }
-    thread.comments.push(newComment);
-    return newComment;
-  }
-
-  deleteThread(id: number) {
-    const thread = this.threadsRepository.getAllById(id);
-
-    if (!thread) {
-      return undefined;
-    }
-
-    for (const comment of thread.comments ?? []) {
-      this.commentsRepository.delete(comment.id);
-    }
-
-    return this.threadsRepository.delete(id);
   }
 }

@@ -1,15 +1,21 @@
 import { Injectable } from '@nestjs/common';
-import { CommentsRepository } from './comments.repository';
+import { InjectRepository } from '@nestjs/typeorm';
+import type { Repository } from 'typeorm';
+import { Comment } from './comments.entity';
 
 @Injectable()
 export class CommentsService {
-  constructor(private readonly commentsRepository: CommentsRepository) {}
+  constructor(
+    @InjectRepository(Comment)
+    private readonly comments: Repository<Comment>,
+  ) {}
 
   getCommentById(id: number) {
-    return this.commentsRepository.getAllById(id);
+    return this.comments.findOneBy({ id });
   }
 
-  deleteComment(id: number) {
-    return this.commentsRepository.markAsDeleted(id);
+  async deleteComment(id: number) {
+    const result = await this.comments.delete(id);
+    return (result.affected ?? 0) > 0;
   }
 }

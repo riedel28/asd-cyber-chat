@@ -5,12 +5,11 @@ import {
   Body,
   Param,
   Delete,
-  ParseIntPipe,
   NotFoundException,
 } from '@nestjs/common';
 import { ThreadsService } from './threads.service';
-import { type CreateThreadPayload } from './threads.service';
-import { type Comment } from 'src/comments/comments.repository';
+import type { CreateThreadDto } from './threads.dto';
+import type { CreateCommentDto } from 'src/comments/comments.dto';
 
 @Controller('threads')
 export class ThreadsController {
@@ -22,13 +21,13 @@ export class ThreadsController {
   }
 
   @Post()
-  createThread(@Body() body: CreateThreadPayload) {
-    return this.threadsService.createThread(body);
+  createThread(@Body() dto: CreateThreadDto) {
+    return this.threadsService.createThread(dto);
   }
 
   @Get(':id')
-  getThreadById(@Param('id', ParseIntPipe) id: number) {
-    const thread = this.threadsService.getThreadById(id);
+  async getThreadById(@Param('id') id: string) {
+    const thread = await this.threadsService.getThreadById(id);
     if (!thread) {
       throw new NotFoundException(`Thread not found.`);
     }
@@ -36,19 +35,19 @@ export class ThreadsController {
   }
 
   @Post(':id/comments')
-  addCommentToThread(
-    @Param('id', ParseIntPipe) id: number,
-    @Body() comment: Omit<Comment, 'id' | 'createdAt'>,
+  async addCommentToThread(
+    @Param('id') id: string,
+    @Body() dto: CreateCommentDto,
   ) {
-    return this.threadsService.addComment(id, comment);
+    return await this.threadsService.addCommentToThread(id, dto);
   }
 
   @Delete(':id')
-  deleteThread(@Param('id', ParseIntPipe) id: number) {
-    const deletedId = this.threadsService.deleteThread(id);
-    if (!deletedId) {
+  async deleteThread(@Param('id') id: string) {
+    const thread = await this.threadsService.deleteThread(id);
+    if (!thread) {
       throw new NotFoundException(`Thread not found.`);
     }
-    return deletedId;
+    return thread;
   }
 }

@@ -13,8 +13,8 @@ export class CommentsController {
   constructor(private readonly commentsService: CommentsService) {}
 
   @Get(':id')
-  getCommentById(@Param('id', ParseIntPipe) id: number) {
-    const comment = this.commentsService.getCommentById(id);
+  async getCommentById(@Param('id', ParseIntPipe) id: number) {
+    const comment = await this.commentsService.getCommentById(id);
     if (!comment) {
       throw new NotFoundException(`Comment not found.`);
     }
@@ -22,11 +22,11 @@ export class CommentsController {
   }
 
   @Delete(':id')
-  deleteComment(@Param('id', ParseIntPipe) id: number) {
-    const deletedId = this.commentsService.deleteComment(id);
-    if (!deletedId) {
+  async deleteComment(@Param('id', ParseIntPipe) id: number) {
+    const deleted = await this.commentsService.deleteComment(id);
+    if (!deleted) {
       throw new NotFoundException(`Comment not found.`);
     }
-    return deletedId;
+    return id;
   }
 }
