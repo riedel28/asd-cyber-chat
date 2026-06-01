@@ -10,19 +10,21 @@ import {
   ParseUUIDPipe,
   HttpCode,
   HttpStatus,
+  Query,
 } from '@nestjs/common';
 import { ThreadsService } from './threads.service';
 import { CreateThreadDto } from './dto/create-thread.dto';
 import { UpdateThreadDto } from './dto/update-thread.dto';
 import { CreateCommentDto } from '../comments/dto/create-comment.dto';
+import { PaginationQueryDto } from '../common/dto/pagination-query.dto';
 
 @Controller('threads')
 export class ThreadsController {
   constructor(private readonly threadsService: ThreadsService) {}
 
   @Get()
-  getAllThreads() {
-    return this.threadsService.getAllThreads();
+  getAllThreads(@Query() pagination: PaginationQueryDto) {
+    return this.threadsService.findAll(pagination);
   }
 
   @Post()

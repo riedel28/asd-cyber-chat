@@ -7,6 +7,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { plainToInstance } from 'class-transformer';
 import type { Repository } from 'typeorm';
 import { Comment } from '../comments/comments.entity';
+import type { PaginationQueryDto } from '../common/dto/pagination-query.dto';
 import type { CreateCommentDto } from '../comments/dto/create-comment.dto';
 import type { CreateThreadDto } from './dto/create-thread.dto';
 import { ThreadResponseDto } from './dto/thread-response.dto';
@@ -14,6 +15,15 @@ import type { UpdateThreadDto } from './dto/update-thread.dto';
 import { Thread } from './threads.entity';
 
 export type CreateThreadPayload = Omit<Thread, 'id' | 'createdAt'>;
+export type PaginatedThreadsResponse = {
+  data: ThreadResponseDto[];
+  meta: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+  };
+};
 
 @Injectable()
 export class ThreadsService {
@@ -24,11 +34,27 @@ export class ThreadsService {
     private readonly comments: Repository<Comment>,
   ) {}
 
-  async getAllThreads(): Promise<ThreadResponseDto[]> {
-    const threads = await this.threads.find({ order: { createdAt: 'DESC' } });
-    return plainToInstance(ThreadResponseDto, threads, {
-      excludeExtraneousValues: true,
+  async findAll(
+    pagination: PaginationQueryDto,
+  ): Promise<PaginatedThreadsResponse> {
+    const { page, limit } = pagination;
+    const [data, total] = await this.threads.findAndCount({
+      order: { createdAt: 'DESC' },
+      skip: (page - 1) * limit,
+      take: limit,
     });
+
+    return {
+      data: plainToInstance(ThreadResponseDto, data, {
+        excludeExtraneousValues: true,
+      }),
+      meta: {
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit),
+      },
+    };
   }
 
   async getThreadById(id: string): Promise<ThreadResponseDto | null> {
