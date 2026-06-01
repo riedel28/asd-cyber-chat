@@ -1,9 +1,10 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import type { Repository } from 'typeorm';
-import { Comment } from 'src/comments/comments.entity';
-import type { CreateCommentDto } from 'src/comments/comments.dto';
-import type { CreateThreadDto } from './threads.dto';
+import { Comment } from '../comments/comments.entity';
+import type { CreateCommentDto } from '../comments/dto/create-comment.dto';
+import type { CreateThreadDto } from './dto/create-thread.dto';
+import type { UpdateThreadDto } from './dto/update-thread.dto';
 import { Thread } from './threads.entity';
 
 export type CreateThreadPayload = Omit<Thread, 'id' | 'createdAt'>;
@@ -27,6 +28,15 @@ export class ThreadsService {
 
   async createThread(dto: CreateThreadDto): Promise<Thread> {
     const thread = this.threads.create(dto);
+    return this.threads.save(thread);
+  }
+
+  async updateThread(id: string, dto: UpdateThreadDto): Promise<Thread> {
+    const thread = await this.threads.preload({ id, ...dto });
+    if (!thread) {
+      throw new NotFoundException(`Thread not found.`);
+    }
+
     return this.threads.save(thread);
   }
 

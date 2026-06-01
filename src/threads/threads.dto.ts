@@ -1,19 +1,2 @@
-import type { Comment } from 'src/comments/comments.entity';
-
-export class CreateThreadDto {
-  title: string;
-
-  body: string;
-
-  author: string;
-
-  comments: Comment[];
-}
-
-export class UpdateThreadDto {
-  title?: string;
-
-  body?: string;
-
-  author?: string;
-}
+export { CreateThreadDto } from './dto/create-thread.dto';
+export { UpdateThreadDto } from './dto/update-thread.dto';

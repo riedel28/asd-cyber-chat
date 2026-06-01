@@ -6,10 +6,12 @@ import {
   Param,
   Delete,
   NotFoundException,
+  Patch,
 } from '@nestjs/common';
 import { ThreadsService } from './threads.service';
-import type { CreateThreadDto } from './threads.dto';
-import type { CreateCommentDto } from 'src/comments/comments.dto';
+import { CreateThreadDto } from './dto/create-thread.dto';
+import { UpdateThreadDto } from './dto/update-thread.dto';
+import { CreateCommentDto } from '../comments/dto/create-comment.dto';
 
 @Controller('threads')
 export class ThreadsController {
@@ -34,12 +36,17 @@ export class ThreadsController {
     return thread;
   }
 
+  @Patch(':id')
+  async updateThread(@Param('id') id: string, @Body() dto: UpdateThreadDto) {
+    return this.threadsService.updateThread(id, dto);
+  }
+
   @Post(':id/comments')
   async addCommentToThread(
     @Param('id') id: string,
     @Body() dto: CreateCommentDto,
   ) {
-    return await this.threadsService.addCommentToThread(id, dto);
+    return this.threadsService.addCommentToThread(id, dto);
   }
 
   @Delete(':id')

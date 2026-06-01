@@ -6,7 +6,7 @@ import {
   OneToMany,
 } from 'typeorm';
 
-import { Comment } from 'src/comments/comments.entity';
+import { Comment } from '../comments/comments.entity';
 
 @Entity('threads')
 export class Thread {

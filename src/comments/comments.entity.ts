@@ -1,4 +1,4 @@
-import { Thread } from 'src/threads/threads.entity';
+import { Thread } from '../threads/threads.entity';
 import {
   Column,
   CreateDateColumn,
