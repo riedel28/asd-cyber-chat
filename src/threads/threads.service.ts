@@ -1,9 +1,11 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { plainToInstance } from 'class-transformer';
 import type { Repository } from 'typeorm';
 import { Comment } from '../comments/comments.entity';
 import type { CreateCommentDto } from '../comments/dto/create-comment.dto';
 import type { CreateThreadDto } from './dto/create-thread.dto';
+import { ThreadResponseDto } from './dto/thread-response.dto';
 import type { UpdateThreadDto } from './dto/update-thread.dto';
 import { Thread } from './threads.entity';
 
@@ -18,29 +20,47 @@ export class ThreadsService {
     private readonly comments: Repository<Comment>,
   ) {}
 
-  getAllThreads() {
-    return this.threads.find({ order: { createdAt: 'DESC' } });
+  async getAllThreads(): Promise<ThreadResponseDto[]> {
+    const threads = await this.threads.find({ order: { createdAt: 'DESC' } });
+    return plainToInstance(ThreadResponseDto, threads, {
+      excludeExtraneousValues: true,
+    });
   }
 
-  getThreadById(id: string) {
-    return this.threads.findOneBy({ id });
+  async getThreadById(id: string): Promise<ThreadResponseDto | null> {
+    const thread = await this.threads.findOneBy({ id });
+    return plainToInstance(ThreadResponseDto, thread, {
+      excludeExtraneousValues: true,
+    });
   }
 
-  async createThread(dto: CreateThreadDto): Promise<Thread> {
+  async createThread(dto: CreateThreadDto): Promise<ThreadResponseDto> {
     const thread = this.threads.create(dto);
-    return this.threads.save(thread);
+    const saved = await this.threads.save(thread);
+    return plainToInstance(ThreadResponseDto, saved, {
+      excludeExtraneousValues: true,
+    });
   }
 
-  async updateThread(id: string, dto: UpdateThreadDto): Promise<Thread> {
-    const thread = await this.threads.preload({ id, ...dto });
+  async updateThread(
+    id: string,
+    dto: UpdateThreadDto,
+  ): Promise<ThreadResponseDto> {
+    const thread = await this.threads.findOneBy({ id });
     if (!thread) {
       throw new NotFoundException(`Thread not found.`);
     }
 
-    return this.threads.save(thread);
+    const saved = await this.threads.save(this.threads.merge(thread, dto));
+    return plainToInstance(ThreadResponseDto, saved, {
+      excludeExtraneousValues: true,
+    });
   }
 
-  async addCommentToThread(id: string, dto: CreateCommentDto): Promise<Thread> {
+  async addCommentToThread(
+    id: string,
+    dto: CreateCommentDto,
+  ): Promise<ThreadResponseDto> {
     const thread = await this.threads.findOneBy({ id });
     if (!thread) {
       throw new NotFoundException(`Thread not found.`);
@@ -53,13 +73,16 @@ export class ThreadsService {
     });
     await this.comments.save(comment);
 
-    return this.threads.findOneOrFail({
+    const threadWithComments = await this.threads.findOneOrFail({
       where: { id },
       relations: { comments: true },
     });
+    return plainToInstance(ThreadResponseDto, threadWithComments, {
+      excludeExtraneousValues: true,
+    });
   }
 
-  async deleteThread(id: string): Promise<Thread> {
+  async deleteThread(id: string): Promise<ThreadResponseDto> {
     const thread = await this.threads.findOne({
       where: { id },
       relations: { comments: true },
@@ -69,6 +92,8 @@ export class ThreadsService {
     }
 
     await this.threads.delete(id);
-    return thread;
+    return plainToInstance(ThreadResponseDto, thread, {
+      excludeExtraneousValues: true,
+    });
   }
 }
