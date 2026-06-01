@@ -2,6 +2,8 @@ import {
   Controller,
   Delete,
   Get,
+  HttpCode,
+  HttpStatus,
   NotFoundException,
   Param,
   ParseIntPipe,
@@ -22,11 +24,8 @@ export class CommentsController {
   }
 
   @Delete(':id')
+  @HttpCode(HttpStatus.NO_CONTENT)
   async deleteComment(@Param('id', ParseIntPipe) id: number) {
-    const deleted = await this.commentsService.deleteComment(id);
-    if (!deleted) {
-      throw new NotFoundException(`Comment not found.`);
-    }
-    return id;
+    await this.commentsService.deleteComment(id);
   }
 }

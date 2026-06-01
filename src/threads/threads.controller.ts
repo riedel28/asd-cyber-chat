@@ -7,6 +7,9 @@ import {
   Delete,
   NotFoundException,
   Patch,
+  ParseUUIDPipe,
+  HttpCode,
+  HttpStatus,
 } from '@nestjs/common';
 import { ThreadsService } from './threads.service';
 import { CreateThreadDto } from './dto/create-thread.dto';
@@ -28,7 +31,7 @@ export class ThreadsController {
   }
 
   @Get(':id')
-  async getThreadById(@Param('id') id: string) {
+  async getThreadById(@Param('id', ParseUUIDPipe) id: string) {
     const thread = await this.threadsService.getThreadById(id);
     if (!thread) {
       throw new NotFoundException(`Thread not found.`);
@@ -37,24 +40,24 @@ export class ThreadsController {
   }
 
   @Patch(':id')
-  async updateThread(@Param('id') id: string, @Body() dto: UpdateThreadDto) {
+  async updateThread(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() dto: UpdateThreadDto,
+  ) {
     return this.threadsService.updateThread(id, dto);
   }
 
   @Post(':id/comments')
   async addCommentToThread(
-    @Param('id') id: string,
+    @Param('id', ParseUUIDPipe) id: string,
     @Body() dto: CreateCommentDto,
   ) {
     return this.threadsService.addCommentToThread(id, dto);
   }
 
   @Delete(':id')
-  async deleteThread(@Param('id') id: string) {
-    const thread = await this.threadsService.deleteThread(id);
-    if (!thread) {
-      throw new NotFoundException(`Thread not found.`);
-    }
-    return thread;
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async deleteThread(@Param('id', ParseUUIDPipe) id: string) {
+    await this.threadsService.deleteThread(id);
   }
 }

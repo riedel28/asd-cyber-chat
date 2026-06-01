@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { plainToInstance } from 'class-transformer';
 import type { Repository } from 'typeorm';
@@ -46,6 +50,10 @@ export class ThreadsService {
     id: string,
     dto: UpdateThreadDto,
   ): Promise<ThreadResponseDto> {
+    if (Object.keys(dto).length === 0) {
+      throw new BadRequestException(`At least one field must be provided.`);
+    }
+
     const thread = await this.threads.findOneBy({ id });
     if (!thread) {
       throw new NotFoundException(`Thread not found.`);
@@ -82,7 +90,7 @@ export class ThreadsService {
     });
   }
 
-  async deleteThread(id: string): Promise<ThreadResponseDto> {
+  async deleteThread(id: string): Promise<void> {
     const thread = await this.threads.findOne({
       where: { id },
       relations: { comments: true },
@@ -91,9 +99,11 @@ export class ThreadsService {
       throw new NotFoundException(`Thread not found.`);
     }
 
+    await this.comments
+      .createQueryBuilder()
+      .delete()
+      .where('thread_id = :id', { id })
+      .execute();
     await this.threads.delete(id);
-    return plainToInstance(ThreadResponseDto, thread, {
-      excludeExtraneousValues: true,
-    });
   }
 }

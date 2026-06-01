@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { plainToInstance } from 'class-transformer';
 import type { Repository } from 'typeorm';
@@ -19,8 +19,10 @@ export class CommentsService {
     });
   }
 
-  async deleteComment(id: number) {
+  async deleteComment(id: number): Promise<void> {
     const result = await this.comments.delete(id);
-    return (result.affected ?? 0) > 0;
+    if ((result.affected ?? 0) === 0) {
+      throw new NotFoundException(`Comment not found.`);
+    }
   }
 }
