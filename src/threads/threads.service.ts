@@ -37,11 +37,12 @@ export class ThreadsService {
   async findAll(
     pagination: PaginationQueryDto,
   ): Promise<PaginatedThreadsResponse> {
-    const { page, limit } = pagination;
+    const { page, limit, sort, author } = pagination;
     const [data, total] = await this.threads.findAndCount({
-      order: { createdAt: 'DESC' },
+      order: { createdAt: sort === 'createdAt' ? 'ASC' : 'DESC' },
       skip: (page - 1) * limit,
       take: limit,
+      where: author ? { author } : {},
     });
 
     return {
