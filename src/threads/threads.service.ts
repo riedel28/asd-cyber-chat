@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  ForbiddenException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
@@ -65,8 +66,11 @@ export class ThreadsService {
     });
   }
 
-  async createThread(dto: CreateThreadDto): Promise<ThreadResponseDto> {
-    const thread = this.threads.create(dto);
+  async createThread(
+    dto: CreateThreadDto,
+    username: string,
+  ): Promise<ThreadResponseDto> {
+    const thread = this.threads.create({ ...dto, author: username });
     const saved = await this.threads.save(thread);
     return plainToInstance(ThreadResponseDto, saved, {
       excludeExtraneousValues: true,
@@ -76,6 +80,7 @@ export class ThreadsService {
   async updateThread(
     id: string,
     dto: UpdateThreadDto,
+    username: string,
   ): Promise<ThreadResponseDto> {
     if (Object.keys(dto).length === 0) {
       throw new BadRequestException(`At least one field must be provided.`);
@@ -84,6 +89,9 @@ export class ThreadsService {
     const thread = await this.threads.findOneBy({ id });
     if (!thread) {
       throw new NotFoundException(`Thread not found.`);
+    }
+    if (thread.author !== username) {
+      throw new ForbiddenException(`You can only update your own threads.`);
     }
 
     const saved = await this.threads.save(this.threads.merge(thread, dto));
@@ -95,6 +103,7 @@ export class ThreadsService {
   async addCommentToThread(
     id: string,
     dto: CreateCommentDto,
+    username: string,
   ): Promise<ThreadResponseDto> {
     const thread = await this.threads.findOneBy({ id });
     if (!thread) {
@@ -103,7 +112,7 @@ export class ThreadsService {
 
     const comment = this.comments.create({
       body: dto.body,
-      author: dto.author,
+      author: username,
       thread,
     });
     await this.comments.save(comment);
@@ -117,13 +126,16 @@ export class ThreadsService {
     });
   }
 
-  async deleteThread(id: string): Promise<void> {
+  async deleteThread(id: string, username: string): Promise<void> {
     const thread = await this.threads.findOne({
       where: { id },
       relations: { comments: true },
     });
     if (!thread) {
       throw new NotFoundException(`Thread not found.`);
+    }
+    if (thread.author !== username) {
+      throw new ForbiddenException(`You can only delete your own threads.`);
     }
 
     await this.comments

@@ -7,9 +7,11 @@ import {
   NotFoundException,
   Param,
   ParseIntPipe,
+  Request,
 } from '@nestjs/common';
 import { CommentsService } from './comments.service';
 import { Public } from 'src/common/decorators/public.decorator';
+import type { AuthenticatedUser } from '../auth/types/authenticated-user';
 
 @Controller('comments')
 export class CommentsController {
@@ -27,7 +29,10 @@ export class CommentsController {
 
   @Delete(':id')
   @HttpCode(HttpStatus.NO_CONTENT)
-  async deleteComment(@Param('id', ParseIntPipe) id: number) {
-    await this.commentsService.deleteComment(id);
+  async deleteComment(
+    @Param('id', ParseIntPipe) id: number,
+    @Request() req: { user: AuthenticatedUser },
+  ) {
+    await this.commentsService.deleteComment(id, req.user.username);
   }
 }
