@@ -9,11 +9,13 @@ import {
   ParseIntPipe,
 } from '@nestjs/common';
 import { CommentsService } from './comments.service';
+import { Public } from 'src/common/decorators/public.decorator';
 
 @Controller('comments')
 export class CommentsController {
   constructor(private readonly commentsService: CommentsService) {}
 
+  @Public()
   @Get(':id')
   async getCommentById(@Param('id', ParseIntPipe) id: number) {
     const comment = await this.commentsService.getCommentById(id);
