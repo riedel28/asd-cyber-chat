@@ -16,6 +16,10 @@ export class UsersService {
     private readonly users: Repository<User>,
   ) {}
 
+  create(dto: CreateUserDto): Promise<UserResponseDto> {
+    return this.createUser(dto);
+  }
+
   async createUser(dto: CreateUserDto): Promise<UserResponseDto> {
     const existingUser = await this.findByUsername(dto.username);
     if (existingUser) {
