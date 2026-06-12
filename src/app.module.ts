@@ -1,3 +1,4 @@
+import dotenv from 'dotenv';
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { AppController } from './app.controller';
@@ -15,7 +16,7 @@ import { AuthModule } from './auth/auth.module';
 import { JwtAuthGuard } from './common/guards/jwt-auth-guard';
 import { APP_GUARD } from '@nestjs/core';
 
-console.log(process.env.DATABASE_URL);
+dotenv.config();
 
 @Module({
   imports: [
