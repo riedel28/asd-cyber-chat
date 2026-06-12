@@ -39,24 +39,23 @@ describe('UsersService', () => {
   it('hashes passwords before persisting a user', async () => {
     users.findOneBy.mockResolvedValue(null);
     users.create.mockImplementation((user) => user as User);
-    users.save.mockImplementation(async (user) => ({
-      id: 'user-id',
-      username: user.username,
-      passwordHash: user.passwordHash,
-    }));
+    users.save.mockImplementation((user) =>
+      Promise.resolve({
+        id: 'user-id',
+        username: user.username,
+        passwordHash: user.passwordHash,
+      }),
+    );
 
     const result = await service.createUser({
       username: 'sergio',
       password: 'super-secret',
     });
 
-    expect(users.save).toHaveBeenCalledWith(
-      expect.objectContaining({
-        username: 'sergio',
-        passwordHash: expect.any(String),
-      }),
-    );
-    const savedUser = users.save.mock.calls[0][0];
+    expect(users.save).toHaveBeenCalledTimes(1);
+    const savedUser = users.save.mock.calls[0][0] as User;
+    expect(savedUser.username).toBe('sergio');
+    expect(typeof savedUser.passwordHash).toBe('string');
     expect(savedUser.passwordHash).not.toBe('super-secret');
     await expect(
       bcrypt.compare('super-secret', savedUser.passwordHash),
