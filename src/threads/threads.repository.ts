@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import type { Comment } from 'src/comments/comments.repository';
+import type { Comment } from '../comments/comments.repository';
 
 export type Thread = {
   id: number;

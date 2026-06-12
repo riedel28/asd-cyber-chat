@@ -21,7 +21,7 @@ import {
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
 import { CommentsService } from './comments.service';
-import { Public } from 'src/common/decorators/public.decorator';
+import { Public } from '../common/decorators/public.decorator';
 import type { AuthenticatedUser } from '../auth/types/authenticated-user';
 import { CommentResponseDto } from './dto/comment-response.dto';
 

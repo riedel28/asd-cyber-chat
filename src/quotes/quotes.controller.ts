@@ -7,7 +7,7 @@ import {
   ApiTags,
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
-import { QuotesService } from 'src/quotes.service';
+import { QuotesService } from '../quotes.service';
 import { QuoteResponseDto } from './dto/quote-response.dto';
 
 @ApiTags('quotes')

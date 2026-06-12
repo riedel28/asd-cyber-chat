@@ -30,7 +30,7 @@ import { CreateThreadDto } from './dto/create-thread.dto';
 import { UpdateThreadDto } from './dto/update-thread.dto';
 import { CreateCommentDto } from '../comments/dto/create-comment.dto';
 import { PaginationQueryDto } from '../common/dto/pagination-query.dto';
-import { Public } from 'src/common/decorators/public.decorator';
+import { Public } from '../common/decorators/public.decorator';
 import type { AuthenticatedUser } from '../auth/types/authenticated-user';
 import { ThreadResponseDto } from './dto/thread-response.dto';
 import { PaginatedThreadsResponseDto } from './dto/paginated-threads-response.dto';
