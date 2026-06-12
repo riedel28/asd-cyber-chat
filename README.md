@@ -44,6 +44,16 @@ $ npm run start:dev
 $ npm run start:prod
 ```
 
+## Run with Docker
+
+```bash
+$ docker build -t asd-cyber-chat .
+$ docker run --env-file .env -p 3000:3000 asd-cyber-chat
+```
+
+The container requires `JWT_SECRET`. Copy `.env.example` to `.env` for local
+development, then set a stronger secret outside development.
+
 ## Run tests
 
 ```bash
