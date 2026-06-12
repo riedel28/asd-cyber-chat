@@ -15,6 +15,8 @@ import { AuthModule } from './auth/auth.module';
 import { JwtAuthGuard } from './common/guards/jwt-auth-guard';
 import { APP_GUARD } from '@nestjs/core';
 
+console.log(process.env.DATABASE_URL);
+
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
@@ -22,13 +24,13 @@ import { APP_GUARD } from '@nestjs/core';
     CommentsModule,
     UsersModule,
     TypeOrmModule.forRoot({
-      type: 'better-sqlite3',
-      database: '../data/db.sqlite',
+      type: 'postgres',
+      url: process.env.DATABASE_URL,
+      ssl: {
+        rejectUnauthorized: false,
+      },
       entities: [Thread, Comment, User],
       synchronize: true,
-      logging: false,
-      enableWAL: true,
-      statementCacheSize: 100,
     }),
     AuthModule,
   ],
